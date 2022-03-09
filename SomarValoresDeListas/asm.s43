@@ -1,0 +1,71 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+        
+        RSEG    DATA16_I
+INICIO_VET1 DS  5        
+INICIO_VET2 DS  5
+INICIO_VETS DS  5
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+
+PARTE1
+        MOV   #INICIO_VET1,R4
+        MOV   #INICIO_VET2,R5
+        MOV   #INICIO_VETS,R6
+        
+PARTE2
+        CALL    #SOMA
+        
+FIM
+        JMP     FIM
+        
+/*------------------------------------------------------------------------------
+NOME DA SUBROTINA: SOMA
+DESCRIÇÃO DA SUBROTINA: Somar os respectivos elementos de duas listas (INCIO_VET1
+e INICIO_VET2)e mandar o resultado para uma outra lista (INICIO_VETS)
+ENTRADAS: R4 - Endereços e conteúdos referentes a lista1
+          R5 - Endereços e conteúdos referentes a lista2
+SAÍDAS:   R6 - Endereços e conteúdos referentes aos resultados        
+------------------------------------------------------------------------------*/
+
+SOMA
+        CLR     R7
+        
+SOMA2
+        MOV.B   0(R4),R8
+        MOV.B   0(R5),R9
+        
+SOMA3        
+        MOV     R8,R10
+        ADD     R9,R10
+        MOV.B   R10,0(R6)
+        
+SOMA4        
+        ADD     #1,R7
+        ADD     #1,R4
+        ADD     #1,R5
+        ADD     #1,R6
+        
+SOMA5
+        CMP     #5,R7
+        JHS     RETORNA
+        JMP     SOMA2
+        
+RETORNA        
+        RET
+        
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
