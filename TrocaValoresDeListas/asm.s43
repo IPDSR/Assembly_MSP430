@@ -1,0 +1,66 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+        
+        RSEG    DATA16_I
+INICIO_L1 DS    6
+INICIO_L2 DS    6
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+
+PARTE1
+        MOV     #INICIO_L1,R4
+        MOV     #INICIO_L2,R5
+        
+PARTE2        
+        CALL    #TROCA
+
+FIM
+        JMP     FIM
+        
+/*------------------------------------------------------------------------------
+NOME DA SUBROTINA: TROCA
+DESCRIÇÃO DA SUBROTINA: TROCA OS CONTEÚDOS DE UMA LISTA COM OS RESPECTIVOS
+CONTEÚDOS DE OUTRA LISTA
+ENTRADAS: R4 - ENDEREÇOS E CONTEÚDOS PRESENTES NA LISTA 1
+          R5 - ENDEREÇOS E CONTEÚDOS PRESENTES NA LISTA 2
+------------------------------------------------------------------------------*/
+
+TROCA
+        CLR     R6
+        
+TROCA2
+        MOV.B   0(R4),R7
+        MOV.B   0(R5),R8
+        
+TROCA3        
+        MOV.B   R7,0(R5)
+        MOV.B   R8,0(R4)
+        
+TROCA4        
+        INC     R4
+        INC     R5
+        INC     R6
+        
+TROCA5        
+        CMP     #6,R6
+        JHS     RETORNA
+        JMP     TROCA2
+        
+RETORNA        
+        RET
+        
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
