@@ -1,0 +1,78 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+
+        RSEG    DATA16_I
+LISTA   DS      4
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        
+/* -----------------------------------------------------------------------------
+DESCRICAO DO PROGRAMA: REALIZA A MÉDIA ARITMETICA DE IDADES PRÉ DEFINIDAS
+ENTRADAS: NUMERO DE PESSOAS
+          LISTA DE IDADES
+SAIDAS: R9 - QUOCIENTE OU RESULTADO
+        R10 - RESTO DA DIVISÃO CASO O RESULTADO ESPERADO FOR UM NÚMERO DECIMAL
+------------------------------------------------------------------------------*/
+        
+PARTE_1       
+        MOV     #LISTA,R4
+        CLR     R5
+        CLR     R6
+        
+PARTE_2
+        ADD.B   0(R4),R5
+        ADD     #1,R6
+        
+PARTE_3      
+        CMP     #4,R6
+        JHS     CHAMAR_DIVISAO
+        
+PARTE_4
+        ADD     #1,R4      
+        JMP     PARTE_2
+        
+CHAMAR_DIVISAO        
+        CALL    #DIVISAO
+        
+FIM        
+        JMP     FIM
+        
+/*------------------------------------------------------------------------------
+NOME DA SUBROTINA: DIVISAO
+DESCRICAO: DIVIDE A SOMA DAS IDADES PELO NÚMERO DE PESSOAS
+ENTRADAS: R7 - DIVIDENDO
+           R8 - DIVISOR
+SAÍDAS: R9 - QUOCIENTE OU RESULTADO
+         R10 - RESTO DA DIVISÃO CASO O RESULTADO ESPERADO FOR UM NÚMERO DECIMAL
+-------------------------------------------------------------------------------*/
+DIVISAO        
+        MOV     R5,R7
+        MOV     #4,R8
+        CLR     R9
+        
+DIVISAO_2
+        CMP     R8,R7
+        JHS     DIVISAO_3
+        MOV     R7,R10
+        RET
+        
+DIVISAO_3
+        SUB     R8,R7
+        ADD     #1,R9
+        JMP     DIVISAO_2
+        
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
