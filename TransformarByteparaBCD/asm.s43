@@ -1,0 +1,60 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        
+        MOV     #255,R4                 ; define o número a ser transformado
+        CALL    #BYTE_PARA_BCD          ; chama a subrotina
+FIM
+        JMP     FIM
+        
+/*-------------------------------------------------------------------------------------
+NOME DA SUBROTINA: BYTE_PARA_BCD
+DESCRIÇÃO: Transforma o valor de 1 byte para o seu correspondente em BCD
+ENTRADAS: R4 - Possibilita que seja introduzido o valor que será transformado para BCD
+SAÍDAS: R5 - Mostra o valor das centenas do valor em BCD
+        R6 - Mostra o valor das dezenas do valor em BCD
+        R7 - Mostra o valor das unidades do valor em BCD
+--------------------------------------------------------------------------------------*/
+
+BYTE_PARA_BCD
+        MOV     #0,R5                   ; zera o registrador R5
+        MOV     #0,R6                   ; zera o registrador R6
+        MOV     #0,R7                   ; zera o registrador R7
+        JMP     COMPARAR_CENTENAS       ; pula para a label COMPARAR_CENTENAS
+
+CENTENAS
+        SUB     #100,R4                 ; subtrai 100 do valor do registrador R4
+        ADD     #1,R5                   ; adiciona 1 ao valor do registrador R5
+COMPARAR_CENTENAS
+        CMP     #100,R4                 ; compara o valor do registrador R4 com 100
+        JHS     CENTENAS                ; se maior ou igual pula para a label CENTENAS
+        JMP     COMPARAR_DEZENAS        ; pula para a label COMPARAR_DEZENAS
+
+DEZENAS
+        SUB     #10,R4                  ; subtrai 10 do valor do registrador R4
+        ADD     #1,R6                   ; adiciona 1 ao valor do registrador R6
+COMPARAR_DEZENAS
+        CMP     #10,R4                  ; compara o valor do registrador R4 com 10
+        JHS     DEZENAS                 ; se maior ou igual pula para a label DEZENAS
+
+UNIDADES
+         MOV    R4,R7                   ; coloca o valor do registrador R4 no registrador R7
+         RET
+        
+        
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
