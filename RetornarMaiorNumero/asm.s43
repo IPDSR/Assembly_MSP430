@@ -1,0 +1,43 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+        MOV     #1,R4
+        MOV     #1,R5
+        CALL    #MOSTRAR_MAIOR
+Para
+        JMP     Para
+        
+/* -----------------------------------------------------------------------------
+NOME: MOSTRAR_MAIOR
+DESCRIÇÃO: COMPARA DOIS NÚMEROS QUAISQUER E RETORNA O MAIOR
+ENTRADAS: R4,R5 - DEFINE OS NÚMEROS QUE SERÃO COMPARADOS
+SAÍDA: RETORNA O MAIOR NÚMERO
+----------------------------------------------------------------------------- */
+        
+MOSTRAR_MAIOR
+        CMP     R5,R4
+        JHS     Mostrar_Numero1
+Mostrar_Numero2
+        MOV     R5,R6
+        JMP     Volta
+Mostrar_Numero1
+        MOV     R4,R6
+Volta        
+        RET
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
